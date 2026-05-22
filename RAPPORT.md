@@ -67,7 +67,9 @@ docker compose logs -f app
 
 Point d'attention local : le fichier `docker-compose.yml` expose `3000:3000`. Si le port 3000 est deja occupe, il faut liberer le port ou temporairement modifier le mapping en `3010:3000`.
 
-Capture a fournir : page `/dashboard` avec au moins un ticket.
+Capture dashboard :
+
+![Dashboard Helpdesk](captures/dashboard.png)
 
 ---
 

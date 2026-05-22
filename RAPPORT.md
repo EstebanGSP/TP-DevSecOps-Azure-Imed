@@ -342,7 +342,9 @@ Resultats :
 - k6 smoke : OK
 - k6 load : termine, mais seuil p95 depasse
 
-Capture a fournir : workflow GitHub Actions vert apres push sur le depot personnel.
+Capture du workflow GitHub Actions vert :
+
+![Workflow GitHub Actions vert](captures/github-actions.png)
 
 ---
 

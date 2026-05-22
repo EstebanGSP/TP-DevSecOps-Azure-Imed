@@ -128,12 +128,10 @@ jobs:
         run: |
           docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/helpdesk:${{ github.sha }} .
           docker tag ${{ secrets.ACR_LOGIN_SERVER }}/helpdesk:${{ github.sha }} ${{ secrets.ACR_LOGIN_SERVER }}/helpdesk:latest
+          docker tag ${{ secrets.ACR_LOGIN_SERVER }}/helpdesk:${{ github.sha }} ${{ secrets.ACR_LOGIN_SERVER }}/helpdesk:v1
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/helpdesk:${{ github.sha }}
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/helpdesk:latest
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/helpdesk:v1
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: ${{ secrets.ACR_LOGIN_SERVER }}/helpdesk:${{ github.sha }}
+      - name: Trigger Azure Web App redeploy
+        run: curl -fsS -X POST "${{ secrets.AZURE_WEBAPP_CD_URL }}"

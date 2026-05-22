@@ -134,4 +134,7 @@ jobs:
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/helpdesk:v1
 
       - name: Trigger Azure Web App redeploy
-        run: curl -fsS -X POST "${{ secrets.AZURE_WEBAPP_CD_URL }}"
+        run: |
+          curl -fsS \
+            -u '${{ secrets.AZURE_PUBLISH_USER }}:${{ secrets.AZURE_PUBLISH_PASSWORD }}' \
+            -X POST "https://${{ secrets.AZURE_WEBAPP_NAME }}.scm.azurewebsites.net/docker/hook"

@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: helpdesk-app
     ports:
-      - "3000:3000"
+      - "3010:3000"
     environment:
       - DATABASE_URL=file:/app/data/prod.db
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}

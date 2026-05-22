@@ -177,7 +177,9 @@ Interpretation :
 - Le point faible probable est SQLite + ecritures concurrentes lors de la creation de tickets.
 - Le fichier `k6-summary.json` a ete genere a la racine du projet.
 
-Capture a fournir : resume console k6 et/ou fichier `k6-summary.json`.
+Capture du resume console k6 :
+
+![Resume k6 load test](captures/k6.png)
 
 ---
 

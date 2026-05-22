@@ -129,7 +129,9 @@ validators.ts   | 100   | 100 | 100   | 100
 
 La couverture n'est pas a 100 % car `prisma.ts` est un singleton de connexion base de donnees, non teste en unitaire. `auth.ts` n'est pas a 100 % car `getAuthFromRequest` n'est pas couvert par les tests actuels.
 
-Capture a fournir : sortie console `npm run test:coverage`.
+Capture de la sortie `npm run test:coverage` :
+
+![Couverture des tests unitaires](captures/coverage.png)
 
 ---
 

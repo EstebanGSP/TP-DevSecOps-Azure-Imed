@@ -31,6 +31,9 @@ coverage/
 npm-debug.log*
 yarn-debug.log*
 
+# local deployment secrets
+*.secret.*
+
 # build artifacts
 *.tsbuildinfo
 next-env.d.ts

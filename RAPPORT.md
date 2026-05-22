@@ -4,9 +4,7 @@
 
 Application support : `support-tickets`, application Next.js fullstack de gestion de tickets.
 
-Etapes traitees dans ce rapport : conteneurisation Docker, tests unitaires, test de charge k6, securite, CI/CD GitHub Actions.
-
-L'etape Azure n'est pas traitee pour l'instant car elle n'est pas encore obligatoire.
+Etapes traitees dans ce rapport : conteneurisation Docker, tests unitaires, test de charge k6, securite, CI/CD GitHub Actions et deploiement Azure.
 
 ---
 
@@ -315,13 +313,15 @@ Jobs :
 - `test` : installation, Prisma generate, lint, tests avec couverture
 - `security` : `npm audit`, Trivy filesystem scan
 - `docker` : build image Docker + scan Trivy image
-- `deploy` : prepare pour Azure, mais desactive tant que `ENABLE_AZURE_DEPLOY` n'est pas defini a `true`
+- `deploy` : build et push de l'image Docker vers Azure Container Registry, puis redeploiement via webhook ACR
 
 Corrections realisees :
 
 - ajout de `.eslintrc.json` pour eviter le prompt interactif de `next lint`
 - ajout de `load: true` dans le build Docker GitHub Actions pour permettre le scan Trivy de l'image locale
-- condition du job `deploy` modifiee pour ne pas echouer tant que l'etape Azure n'est pas activee
+- condition du job `deploy` activee avec la variable GitHub `ENABLE_AZURE_DEPLOY=true`
+- ajout des secrets GitHub pour ACR et Azure App Service
+- ajout d'un webhook ACR pour redeployer l'App Service quand le tag `helpdesk:v1` est pousse
 
 Validation locale :
 
@@ -350,9 +350,55 @@ Capture du workflow GitHub Actions vert :
 
 ---
 
-## Synthese provisoire
+## Etape 6 - Deploiement Azure
 
-Architecture jusqu'a l'etape 5 :
+Ressources creees :
+
+- Groupe de ressources : `helpdesk-rg`
+- Region : `francecentral`
+- Azure Container Registry : `helpdeskacregsp01.azurecr.io`
+- App Service Plan : `helpdesk-plan`
+- Web App : `helpdesk-egsp01`
+
+URL publique :
+
+```text
+https://helpdesk-egsp01.azurewebsites.net
+```
+
+Image deployee :
+
+```text
+helpdeskacregsp01.azurecr.io/helpdesk:v1
+```
+
+Configuration importante :
+
+- `DATABASE_URL=file:/home/prod.db`
+- `JWT_SECRET` stocke dans la configuration Azure
+- `NODE_ENV=production`
+- `WEBSITES_PORT=3000`
+- `WEBSITES_ENABLE_APP_SERVICE_STORAGE=true`
+
+Validation :
+
+```bash
+curl https://helpdesk-egsp01.azurewebsites.net/api/health
+```
+
+Resultat obtenu :
+
+```json
+{"status":"ok"}
+```
+
+La CI/CD GitHub Actions pousse l'image Docker vers ACR. Un webhook ACR declenche ensuite le redeploiement de l'App Service lorsque le tag `helpdesk:v1` est mis a jour.
+
+---
+
+## Synthese finale
+
+Architecture finale :
 
 ```text
 Dev local
@@ -365,15 +411,29 @@ GitHub repository
   |-- test: lint + unit tests + coverage
   |-- security: npm audit + Trivy fs
   |-- docker: build image + Trivy image
+  |-- deploy: build + push vers ACR
   v
-Image Docker helpdesk:dev validee localement
+Azure Container Registry
+  |
+  | webhook ACR
+  v
+Azure App Service
+  |
+  v
+Application publique
 ```
 
 Ameliorations DevSecOps possibles :
 
 1. Mettre a jour Next.js et les dependances vulnerables remontees par `npm audit` et Trivy.
 2. Remplacer SQLite par PostgreSQL pour mieux tenir les ecritures concurrentes en charge.
-3. Ajouter un vrai SAST type CodeQL ou SonarQube dans le pipeline.
+3. Ajouter Azure Key Vault, Application Insights et un vrai SAST type CodeQL ou SonarQube dans le pipeline.
+
+Cout Azure estime :
+
+- Credit initial Azure for Students : 100 USD
+- Cout observe au moment du TP : environ 0 USD
+- Les ressources utilisees restent legeres, mais le plan App Service `B1` consomme du credit tant qu'il reste actif.
 
 Problemes rencontres :
 
@@ -381,3 +441,6 @@ Problemes rencontres :
 - Image Docker initiale superieure a 300 Mo : suppression des dependances Prisma inutiles dans le runner et initialisation DB par script leger.
 - `next lint` interactif : ajout d'une configuration ESLint.
 - k6 load test : l'application tient, mais la latence p95 depasse le seuil a 50 VUs.
+- Azure CLI absent du PATH : utilisation du chemin complet vers `az.cmd`.
+- Azure App Service en erreur au premier deploiement : correction de `DATABASE_URL` vers `/home/prod.db` et activation du stockage persistant.
+- Service principal impossible avec le compte ecole : deploiement CI/CD realise via ACR, secrets GitHub et webhook ACR.
